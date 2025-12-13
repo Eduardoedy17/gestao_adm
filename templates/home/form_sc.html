@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block titulo_conteudo %}Nova Solicitação{% endblock titulo_conteudo %}
+
+{% block conteudo %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.unidade.label_tag }}
+            {{ form.unidade }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.cnpj_display.label_tag }}
+            {{ form.cnpj_display }}
+        </div>
+    </div>
+
+    {% for field in form %}
+        {% if field.name != 'unidade' and field.name != 'cnpj_display' %}
+            <div class="mb-3">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+                <div class="text-danger">{{ field.errors }}</div>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    <button type="submit" class="btn btn-success mt-3"><i class="fas fa-save"></i> Salvar Solicitação</button>
+    <a href="{% url 'index' %}" class="btn btn-secondary mt-3">Cancelar</a>
+</form>
+{% endblock conteudo %}
+
+{% block javascript %}
+<script>
+    // Script simples para buscar o CNPJ quando a Unidade mudar
+    document.getElementById('id_unidade').addEventListener('change', function() {
+        var unidadeId = this.value;
+        var url = "{% url 'ajax_get_cnpj' %}";  // URL definida no urls.py
+
+        fetch(url + '?unidade_id=' + unidadeId)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('id_cnpj_display').value = data.cnpj;
+            });
+    });
+</script>
+{% endblock %}

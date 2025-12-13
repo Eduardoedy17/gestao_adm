@@ -32,3 +32,14 @@ def get_cnpj_unidade(request):
     except (Unidade.DoesNotExist, ValueError):
         data = {'cnpj': ''}
     return JsonResponse(data)
+
+# Adicione esta classe no final do arquivo home/views.py
+
+class ListaPendenciasView(ListView):
+    model = OrdemCompra
+    template_name = 'home/lista_pendencias.html'
+    context_object_name = 'solicitacoes'
+
+    def get_queryset(self):
+        # Filtra apenas ordens com status 'SOLICITADO' (que precisam de aprovação)
+        return OrdemCompra.objects.filter(status='SOLICITADO').order_by('-data_criacao')

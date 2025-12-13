@@ -9,4 +9,7 @@ urlpatterns = [
     
     # Rota para o AJAX buscar o CNPJ (Front-end chama essa URL)
     path('ajax/get-cnpj/', views.get_cnpj_unidade, name='ajax_get_cnpj'),
+
+    # Rota para a lista de pendências
+    path('pendencias/', views.ListaPendenciasView.as_view(), name='lista_pendencias'),
 ]

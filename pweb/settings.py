@@ -1,27 +1,16 @@
 """
 Django settings for pweb project.
 """
-
 from pathlib import Path
 import os
 import dj_database_url
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# Tenta pegar do ambiente (Vercel), se não achar usa a chave insegura (Local)
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-t_-cl2580se4quu7kbgb3pfsgmvx_966^1xby%l8_2bwfgjf9&')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-# Se existir a variável 'VERCEL', desliga o DEBUG automaticamente
+# Configuração de Segurança
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-chave-local')
 DEBUG = 'VERCEL' not in os.environ
-
-# Hosts permitidos (Localhost e Vercel)
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app', '.now.sh']
-
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -35,7 +24,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise para arquivos estáticos
+    # 'whitenoise.middleware.WhiteNoiseMiddleware', <--- REMOVIDO PARA EVITAR CONFLITO
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -65,13 +54,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'pweb.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-# Configuração Híbrida:
-# Se houver 'POSTGRES_URL' (Ambiente Vercel), usa Postgres.
-# Caso contrário (Ambiente Local), usa SQLite.
+# Banco de Dados
 DATABASES = {
     'default': dj_database_url.config(
         default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
@@ -80,28 +63,13 @@ DATABASES = {
     )
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
+# Senhas e Internacionalização
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Fortaleza'
@@ -112,32 +80,19 @@ USE_THOUSAND_SEPARATOR = True
 DECIMAL_SEPARATOR = ','
 THOUSAND_SEPARATOR = '.'
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
+# --- CONFIGURAÇÃO DE ESTÁTICOS (ARQUIVOS CSS/JS) ---
 
-# 1. URL pública dos estáticos (IMPORTANTE: Começar com /)
+# 1. URL pública (como o navegador acessa)
 STATIC_URL = '/static/'
 
-# 2. Onde o Django procura estáticos durante o desenvolvimento
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
-]
+# 2. Onde estão seus arquivos agora (desenvolvimento)
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# 3. Onde o 'collectstatic' vai salvar os arquivos finais na Vercel
-# A Vercel espera 'staticfiles_build', mas o navegador espera '/static/'
-# Por isso adicionamos o 'static' no final do caminho.
+# 3. Onde o Vercel vai buscar os arquivos finais
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
 
-# Armazenamento otimizado para produção
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Configuração de Uploads (Mídia)
+# 4. Uploads
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

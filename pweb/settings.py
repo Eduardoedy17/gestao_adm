@@ -1,16 +1,23 @@
 """
 Django settings for pweb project.
 """
+
 from pathlib import Path
 import os
 import dj_database_url
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Configuração de Segurança
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-chave-local')
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-t_-cl2580se4quu7kbgb3pfsgmvx_966^1xby%l8_2bwfgjf9&')
+
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'VERCEL' not in os.environ
+
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app', '.now.sh']
+
+# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -24,7 +31,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # 'whitenoise.middleware.WhiteNoiseMiddleware', <--- REMOVIDO PARA EVITAR CONFLITO
+    # WhiteNoise removido para evitar conflito com Vercel
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -54,7 +61,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'pweb.wsgi.application'
 
-# Banco de Dados
+
+# Database
 DATABASES = {
     'default': dj_database_url.config(
         default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
@@ -63,7 +71,7 @@ DATABASES = {
     )
 }
 
-# Senhas e Internacionalização
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -71,6 +79,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# Internationalization
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Fortaleza'
 USE_I18N = True
@@ -80,19 +89,21 @@ USE_THOUSAND_SEPARATOR = True
 DECIMAL_SEPARATOR = ','
 THOUSAND_SEPARATOR = '.'
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# --- CONFIGURAÇÃO CORRIGIDA DE ESTÁTICOS ---
 
-# --- CONFIGURAÇÃO DE ESTÁTICOS (ARQUIVOS CSS/JS) ---
-
-# 1. URL pública (como o navegador acessa)
+# 1. A URL pública DEVE começar com '/'
 STATIC_URL = '/static/'
 
-# 2. Onde estão seus arquivos agora (desenvolvimento)
+# 2. Onde estão seus arquivos de desenvolvimento
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# 3. Onde o Vercel vai buscar os arquivos finais
+# 3. Onde a Vercel vai buscar (Cria uma pasta 'static' DENTRO do build)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
 
-# 4. Uploads
+# Não use WhiteNoise na Vercel com esta configuração
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

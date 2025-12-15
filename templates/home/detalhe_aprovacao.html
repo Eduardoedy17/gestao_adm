@@ -5,6 +5,7 @@
 {% block conteudo %}
 <div class="row">
     <div class="col-md-8">
+        
         <div class="card mb-3">
             <div class="card-header bg-light">
                 <strong>Dados da Compra / Serviço</strong>
@@ -26,7 +27,7 @@
                 <div class="row mb-3">
                     <div class="col-md-12">
                         <label class="text-muted small">Descrição Detalhada</label>
-                        <p class="border p-2 rounded bg-light">{{ oc.descricao_servico }}</p>
+                        <p class="border p-2 rounded bg-light">{{ oc.descricao_servico|linebreaksbr }}</p>
                     </div>
                 </div>
 
@@ -47,17 +48,17 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header bg-light">
-                <strong>Documento Anexo (Orçamento)</strong>
+                <strong>Documento Anexo (Orçamento do Fornecedor)</strong>
             </div>
             <div class="card-body text-center">
                 {% if oc.anexo_orcamento %}
                     <a href="{{ oc.anexo_orcamento.url }}" target="_blank" class="btn btn-outline-primary">
-                        <i class="fas fa-file-pdf"></i> Visualizar PDF do Fornecedor
+                        <i class="fas fa-file-pdf"></i> Visualizar PDF Original
                     </a>
                 {% else %}
-                    <span class="text-danger">Nenhum orçamento anexado.</span>
+                    <span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Nenhum orçamento foi anexado pelo solicitante.</span>
                 {% endif %}
             </div>
         </div>
@@ -68,23 +69,19 @@
             <div class="card-header bg-warning text-dark">
                 <strong>Decisão do Gestor</strong>
             </div>
-
-    <div class="card-body">
-        <p class="small text-muted">Atenção: Ao aprovar, uma Ordem de Compra oficial será gerada e auditada.</p>
-        
-        <div class="d-grid gap-2 mb-3">
-            <a href="{% url 'visualizar_pdf' oc.id %}" target="_blank" class="btn btn-outline-dark">
-                <i class="fas fa-eye"></i> Ver Minuta da Ordem (Prévia)
-            </a>
-    </div>
-
-    <hr>
-    
-    <form method="post">
-
             <div class="card-body">
-                <p class="small text-muted">Atenção: Ao aprovar, uma Ordem de Compra oficial será gerada e auditada.</p>
+                <p class="small text-muted">
+                    <i class="fas fa-info-circle"></i> Atenção: Ao aprovar, uma Ordem de Compra oficial será gerada e auditada automaticamente.
+                </p>
                 
+                <div class="d-grid gap-2 mb-3">
+                    <a href="{% url 'visualizar_pdf' oc.id %}" target="_blank" class="btn btn-outline-dark">
+                        <i class="fas fa-eye"></i> Ver Minuta (Prévia)
+                    </a>
+                </div>
+
+                <hr>
+
                 <form method="post">
                     {% csrf_token %}
                     
@@ -94,16 +91,16 @@
                         </button>
                     </div>
 
-                    <hr>
-
-                    <div class="mb-2">
-                        <label class="form-label text-danger fw-bold">Reprovação</label>
-                        <textarea name="motivo_reprovacao" class="form-control" rows="3" placeholder="Justifique a recusa..."></textarea>
-                    </div>
-                    <div class="d-grid">
-                        <button type="submit" name="acao" value="reprovar" class="btn btn-outline-danger">
-                            <i class="fas fa-times"></i> REPROVAR
-                        </button>
+                    <div class="border-top pt-3">
+                        <div class="mb-2">
+                            <label class="form-label text-danger fw-bold">Reprovação</label>
+                            <textarea name="motivo_reprovacao" class="form-control" rows="3" placeholder="Obrigatório em caso de recusa..."></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" name="acao" value="reprovar" class="btn btn-outline-danger">
+                                <i class="fas fa-times"></i> REPROVAR
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

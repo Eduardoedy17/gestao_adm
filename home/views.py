@@ -92,18 +92,14 @@ class DetalheAprovacaoView(DetailView):
 
         return redirect('lista_pendencias')
     
-# 6. Visualizar PDF (NOVO)
-
+# 6. Visualizar PDF (NOVO)    
 class VisualizarPdfView(DetailView):
     model = OrdemCompra
     
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        
-        # Gera o PDF usando a lógica centralizada (garante que a prévia é igual ao final)
+        # Gera o PDF mas define para abrir no navegador (inline)
         pdf_content, filename = gerar_pdf_ordem_compra(self.object)
-        
-        # Configura a resposta para abrir no navegador ('inline') em vez de baixar
         response = HttpResponse(pdf_content, content_type='application/pdf')
         response['Content-Disposition'] = f'inline; filename="PREVIA_{filename}"'
         return response

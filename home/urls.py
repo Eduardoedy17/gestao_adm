@@ -15,4 +15,7 @@ urlpatterns = [
     
     # Rota para o detalhe da aprovação
     path('aprovacao/<int:pk>/', views.DetalheAprovacaoView.as_view(), name='detalhe_aprovacao'),
+
+    # Rota para visualizar o PDF da ordem de compra
+    path('aprovacao/<int:pk>/preview/', views.VisualizarPdfView.as_view(), name='visualizar_pdf'),
 ]

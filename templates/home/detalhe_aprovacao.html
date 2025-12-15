@@ -68,6 +68,20 @@
             <div class="card-header bg-warning text-dark">
                 <strong>Decisão do Gestor</strong>
             </div>
+
+    <div class="card-body">
+        <p class="small text-muted">Atenção: Ao aprovar, uma Ordem de Compra oficial será gerada e auditada.</p>
+        
+        <div class="d-grid gap-2 mb-3">
+            <a href="{% url 'visualizar_pdf' oc.id %}" target="_blank" class="btn btn-outline-dark">
+                <i class="fas fa-eye"></i> Ver Minuta da Ordem (Prévia)
+            </a>
+    </div>
+
+    <hr>
+    
+    <form method="post">
+
             <div class="card-body">
                 <p class="small text-muted">Atenção: Ao aprovar, uma Ordem de Compra oficial será gerada e auditada.</p>
                 

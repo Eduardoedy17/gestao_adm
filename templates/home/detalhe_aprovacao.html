@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block titulo_conteudo %}Análise de Solicitação #{{ oc.id }}{% endblock %}
+
+{% block conteudo %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header bg-light">
+                <strong>Dados da Compra / Serviço</strong>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small">Unidade</label>
+                        <div class="fw-bold">{{ oc.unidade.nome }}</div>
+                        <div class="small">{{ oc.unidade.cnpj }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Centro de Custo</label>
+                        <div class="fw-bold">{{ oc.centro_custo.codigo }}</div>
+                        <div>{{ oc.centro_custo.descricao }}</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="text-muted small">Descrição Detalhada</label>
+                        <p class="border p-2 rounded bg-light">{{ oc.descricao_servico }}</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="text-muted small">Valor Estimado</label>
+                        <h4 class="text-primary">R$ {{ oc.valor_estimado }}</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small">Fornecedor Sugerido</label>
+                        <div>{{ oc.fornecedor }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small">Classificação</label>
+                        <div><span class="badge bg-info">{{ oc.classificacao }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-light">
+                <strong>Documento Anexo (Orçamento)</strong>
+            </div>
+            <div class="card-body text-center">
+                {% if oc.anexo_orcamento %}
+                    <a href="{{ oc.anexo_orcamento.url }}" target="_blank" class="btn btn-outline-primary">
+                        <i class="fas fa-file-pdf"></i> Visualizar PDF do Fornecedor
+                    </a>
+                {% else %}
+                    <span class="text-danger">Nenhum orçamento anexado.</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow border-warning">
+            <div class="card-header bg-warning text-dark">
+                <strong>Decisão do Gestor</strong>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted">Atenção: Ao aprovar, uma Ordem de Compra oficial será gerada e auditada.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="d-grid gap-2 mb-4">
+                        <button type="submit" name="acao" value="aprovar" class="btn btn-success btn-lg">
+                            <i class="fas fa-check-double"></i> APROVAR
+                        </button>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-2">
+                        <label class="form-label text-danger fw-bold">Reprovação</label>
+                        <textarea name="motivo_reprovacao" class="form-control" rows="3" placeholder="Justifique a recusa..."></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" name="acao" value="reprovar" class="btn btn-outline-danger">
+                            <i class="fas fa-times"></i> REPROVAR
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

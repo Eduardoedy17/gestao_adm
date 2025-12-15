@@ -13,6 +13,7 @@
                 <th>Valor</th>
                 <th>Data</th>
                 <th>Status</th>
+                <th>Ações</th>
             </tr>
         </thead>
         <tbody>
@@ -24,10 +25,15 @@
                 <td>R$ {{ s.valor_estimado }}</td>
                 <td>{{ s.data_criacao|date:"d/m/Y" }}</td>
                 <td><span class="badge bg-warning">{{ s.get_status_display }}</span></td>
+                <td>
+                    <a href="{% url 'detalhe_aprovacao' s.id %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-search"></i> Analisar
+                    </a>
+                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="text-center">Nenhuma solicitação pendente de aprovação.</td>
+                <td colspan="7" class="text-center">Nenhuma solicitação pendente de aprovação.</td>
             </tr>
             {% endfor %}
         </tbody>

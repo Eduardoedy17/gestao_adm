@@ -12,4 +12,7 @@ urlpatterns = [
 
     # Rota para a lista de pendências
     path('pendencias/', views.ListaPendenciasView.as_view(), name='lista_pendencias'),
+    
+    # Rota para o detalhe da aprovação
+    path('aprovacao/<int:pk>/', views.DetalheAprovacaoView.as_view(), name='detalhe_aprovacao'),
 ]

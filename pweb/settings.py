@@ -31,7 +31,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # WhiteNoise removido para evitar conflito com Vercel
+    # WhiteNoise removido: Vamos usar o sistema nativo da Vercel para evitar conflitos
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -62,14 +62,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pweb.wsgi.application'
 
 
-# Database
-DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
-        conn_max_age=600,
-        ssl_require=True if 'POSTGRES_URL' in os.environ else False
-    )
-}
+# --- BANCO DE DADOS (CORRIGIDO PARA VERCEL POSTGRES) ---
+# A Vercel usa a variável 'POSTGRES_URL', mas o django procura 'DATABASE_URL' por padrão.
+# Aqui forçamos ele a ler a variável correta.
+
+database_url = os.environ.get("POSTGRES_URL") # Pega do ambiente Vercel
+# Se não achar POSTGRES_URL, tenta DATABASE_URL, senão usa SQLite local
+default_db = dj_database_url.config(default=f'sqlite:///{BASE_DIR}/db.sqlite3')
+
+if database_url:
+    # Configuração explícita para o Postgres da Vercel
+    DATABASES = {
+        'default': dj_database_url.parse(database_url, conn_max_age=600, ssl_require=True)
+    }
+else:
+    # Configuração Local (SQLite)
+    DATABASES = {
+        'default': default_db
+    }
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -89,20 +100,22 @@ USE_THOUSAND_SEPARATOR = True
 DECIMAL_SEPARATOR = ','
 THOUSAND_SEPARATOR = '.'
 
-# --- CONFIGURAÇÃO CORRIGIDA DE ESTÁTICOS ---
 
-# 1. A URL pública DEVE começar com '/'
+# --- ARQUIVOS ESTÁTICOS (CORREÇÃO DE "TELA BUGADA") ---
+
+# 1. A URL DEVE ter a barra inicial (/)
 STATIC_URL = '/static/'
 
-# 2. Onde estão seus arquivos de desenvolvimento
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+# 2. Onde estão os arquivos originais (desenvolvimento)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
-# 3. Onde a Vercel vai buscar (Cria uma pasta 'static' DENTRO do build)
+# 3. Onde os arquivos serão salvos no Deploy
+# Adicionamos 'static' no final para que a Vercel encontre em /static/arquivo.css
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
 
-# Não use WhiteNoise na Vercel com esta configuração
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
+# Configuração de Uploads
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

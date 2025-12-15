@@ -1,16 +1,13 @@
 #!/bin/bash
 
 echo "Building project..."
-# Instala as dependências
 python3.12 -m pip install -r requirements.txt
 
-echo "Collect Static..."
-# Gera os arquivos estáticos (Essencial para o CSS funcionar)
-python3.12 manage.py collectstatic --noinput --clear
+# echo "Make Migration..."             <-- COMENTE ESTA LINHA
+# python3.12 manage.py makemigrations  <-- COMENTE ESTA LINHA
+# python3.12 manage.py migrate         <-- COMENTE ESTA LINHA
 
-# COMENTE AS MIGRAÇÕES NO BUILD (Faça isso via terminal local)
-# echo "Make Migration..."
-# python3.12 manage.py makemigrations
-# python3.12 manage.py migrate
+echo "Collect Static..."
+python3.12 manage.py collectstatic --noinput --clear
 
 echo "Build End"

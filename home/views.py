@@ -46,7 +46,7 @@ class ListaPendenciasView(ListView):
         # select_related melhora a performance buscando Unidade e Solicitante juntos
         return OrdemCompra.objects.select_related('unidade', 'solicitante').filter(status='SOLICITADO').order_by('-data_criacao')
 
-# 5. Detalhe e Aprovação (NOVO)
+# 5. Detalhe e Aprovação
 class DetalheAprovacaoView(DetailView):
     model = OrdemCompra
     template_name = 'home/detalhe_aprovacao.html'
@@ -91,8 +91,8 @@ class DetalheAprovacaoView(DetailView):
             return redirect('lista_pendencias')
 
         return redirect('lista_pendencias')
-    
-# 6. Visualizar PDF (NOVO)    
+
+# 6. Pré-visualização do PDF (NOVO - FALTAVA ISTO)
 class VisualizarPdfView(DetailView):
     model = OrdemCompra
     

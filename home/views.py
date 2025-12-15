@@ -36,17 +36,16 @@ def get_cnpj_unidade(request):
         data = {'cnpj': ''}
     return JsonResponse(data)
 
-# 4. Lista de Pendências (Com otimização de consulta)
+# 4. Lista de Pendências
 class ListaPendenciasView(ListView):
     model = OrdemCompra
     template_name = 'home/lista_pendencias.html'
     context_object_name = 'solicitacoes'
 
     def get_queryset(self):
-        # select_related melhora a performance buscando Unidade e Solicitante juntos
         return OrdemCompra.objects.select_related('unidade', 'solicitante').filter(status='SOLICITADO').order_by('-data_criacao')
 
-# 5. Detalhe e Aprovação
+# 5. Detalhe e Aprovação (BLINDADO CONTRA ERRO NO VERCEL)
 class DetalheAprovacaoView(DetailView):
     model = OrdemCompra
     template_name = 'home/detalhe_aprovacao.html'
@@ -57,25 +56,28 @@ class DetalheAprovacaoView(DetailView):
         acao = request.POST.get('acao')
         motivo = request.POST.get('motivo_reprovacao')
 
-        # Segurança: impede alteração se não estiver pendente
         if self.object.status != 'SOLICITADO':
             messages.error(request, 'Esta solicitação já foi processada.')
             return redirect('lista_pendencias')
 
         if acao == 'aprovar':
-            # Atualiza status
+            # Atualiza status PRIMEIRO
             self.object.status = 'APROVADO'
             self.object.aprovado_por = request.user if request.user.is_authenticated else None
             self.object.data_aprovacao = timezone.now()
             self.object.save()
             
-            # Gera PDF
+            # Tenta gerar o PDF
             pdf_content, filename = gerar_pdf_ordem_compra(self.object)
             
-            # Retorna download
-            response = HttpResponse(pdf_content, content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            return response
+            if pdf_content:
+                response = HttpResponse(pdf_content, content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                return response
+            else:
+                # Fallback seguro
+                messages.warning(request, "Ordem aprovada com sucesso! (PDF indisponível neste ambiente serverless).")
+                return redirect('lista_pendencias')
 
         elif acao == 'reprovar':
             if not motivo:
@@ -92,14 +94,18 @@ class DetalheAprovacaoView(DetailView):
 
         return redirect('lista_pendencias')
 
-# 6. Pré-visualização do PDF (NOVO - FALTAVA ISTO)
+# 6. Pré-visualização do PDF
 class VisualizarPdfView(DetailView):
     model = OrdemCompra
     
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        # Gera o PDF mas define para abrir no navegador (inline)
+        
         pdf_content, filename = gerar_pdf_ordem_compra(self.object)
-        response = HttpResponse(pdf_content, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="PREVIA_{filename}"'
-        return response
+        
+        if pdf_content:
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="PREVIA_{filename}"'
+            return response
+        else:
+            return HttpResponse("<h1>Visualização indisponível</h1><p>O ambiente Vercel não suporta as bibliotecas gráficas necessárias para gerar o PDF.</p>", status=503)

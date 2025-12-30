@@ -20,7 +20,7 @@
             {% for s in solicitacoes %}
             <tr>
                 <td>#{{ s.id }}</td>
-                <td>{{ s.unidade.nome }}</td>
+                <td>{{ s.unidade.abreviacao }}</td>
                 <td>{{ s.fornecedor }}</td>
                 <td>R$ {{ s.valor_estimado }}</td>
                 <td>{{ s.data_criacao|date:"d/m/Y" }}</td>

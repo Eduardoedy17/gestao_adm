@@ -8,25 +8,20 @@ import os
 class Unidade(models.Model):
     """
     Representa as unidades do Grupo Med Imagem e seus CNPJs.
+    Refatorado para ser dinâmico: permite cadastrar novas unidades pelo Admin.
     """
-    NOME_CHOICES = [
-        ('HMI', 'H. Med Imagem (HMI, MED KIDS, MED PLAN, CIN)'),
-        ('PMA', 'Prontomed Adulto (PMA)'),
-        ('PMI', 'Prontomed Infantil (PMI)'),
-        ('HSM', 'H. Santa Maria (HSM)'),
-        ('HSM_JOQUEI', 'HSM - I. P. Jóquei'),
-        ('HSM_TIMON', 'HSM - Timon / H. Vitória'),
-        ('ONCO', 'Oncomédica'),
-        ('MMI', 'Maternidade Med Imagem (MMI)'),
-        ('HUMANA', 'Humana Saúde Matriz (PHB, FLORIANO, PICOS)'),
-    ]
-    
-    nome = models.CharField(max_length=50, choices=NOME_CHOICES)
-    razao_social = models.CharField(max_length=150)
-    cnpj = models.CharField(max_length=20, help_text="Formato: 00.000.000/0000-00")
+    abreviacao = models.CharField(max_length=20, verbose_name="Sigla / Abreviação", help_text="Ex: HMI, PMA")
+    nome = models.CharField(max_length=100, verbose_name="Nome da Unidade", help_text="Ex: Hospital Med Imagem")
+    razao_social = models.CharField(max_length=150, verbose_name="Razão Social")
+    cnpj = models.CharField(max_length=20, verbose_name="CNPJ", help_text="Formato: 00.000.000/0000-00")
+
+    class Meta:
+        verbose_name = "Unidade"
+        verbose_name_plural = "Unidades"
+        ordering = ['abreviacao']
 
     def __str__(self):
-        return f"{self.get_nome_display()} - {self.cnpj}"
+        return f"{self.abreviacao} - {self.nome}"
 
 class CentroCusto(models.Model):
     """
@@ -57,7 +52,7 @@ class OrdemCompra(models.Model):
     """
     O coração do sistema. Gerencia o fluxo da solicitação.
     """
-    # Choices conforme especificação
+    # Choices conforme especificação (Mantidos fixos para lógica de negócio)
     TIPO_CLASSIFICACAO = [
         ('CAPEX', 'CAPEX (Investimento/Obras/Bens)'),
         ('OPEX', 'OPEX (Custeio/Manutenção/Materiais)'),

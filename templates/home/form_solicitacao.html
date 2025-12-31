@@ -1,52 +1,207 @@
 {% extends "base.html" %}
 
-{% block titulo_conteudo %}Nova Solicitação{% endblock titulo_conteudo %}
+{% block titulo_conteudo %}Nova Solicitação de Compra{% endblock titulo_conteudo %}
 
 {% block conteudo %}
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            {{ form.unidade.label_tag }}
-            {{ form.unidade }}
+
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-id-card"></i> A. Dados de Identificação (Cabeçalho)
         </div>
-        <div class="col-md-6 mb-3">
-            {{ form.cnpj_display.label_tag }}
-            {{ form.cnpj_display }}
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    {{ form.numero_os.label_tag }}
+                    {{ form.numero_os }}
+                    <div class="text-danger small">{{ form.numero_os.errors }}</div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    {{ form.data_os.label_tag }}
+                    {{ form.data_os }}
+                    <div class="text-danger small">{{ form.data_os.errors }}</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.setor_execucao.label_tag }}
+                    {{ form.setor_execucao }}
+                    <div class="text-danger small">{{ form.setor_execucao.errors }}</div>
+                </div>
+            </div>
+
+            <div class="row bg-light p-2 rounded mb-3">
+                <div class="col-md-6 mb-3">
+                    {{ form.solicitante.label_tag }}
+                    {{ form.solicitante }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.telefone_display.label_tag }}
+                    {{ form.telefone_display }}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-5 mb-3">
+                    {{ form.unidade.label_tag }}
+                    {{ form.unidade }}
+                </div>
+                <div class="col-md-2 mb-3">
+                    {{ form.abreviacao_display.label_tag }}
+                    {{ form.abreviacao_display }}
+                </div>
+                <div class="col-md-5 mb-3">
+                    {{ form.cnpj_display.label_tag }}
+                    {{ form.cnpj_display }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    {{ form.razao_social_display.label_tag }}
+                    {{ form.razao_social_display }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    {{ form.centro_custo.label_tag }}
+                    {{ form.centro_custo }}
+                </div>
+            </div>
         </div>
     </div>
 
-    {% for field in form %}
-        {% if field.name != 'unidade' and field.name != 'cnpj_display' %}
-            <div class="mb-3">
-                {{ field.label_tag }}
-                {{ field }}
-                {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                {% endif %}
-                <div class="text-danger">{{ field.errors }}</div>
+    <div class="card mb-4 border-info">
+        <div class="card-header bg-info text-white">
+            <i class="fas fa-tags"></i> B. Classificação do Pedido
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.objetivo_compra.label_tag }}
+                    {{ form.objetivo_compra }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.especialidade.label_tag }}
+                    {{ form.especialidade }}
+                </div>
             </div>
-        {% endif %}
-    {% endfor %}
+        </div>
+    </div>
 
-    <button type="submit" class="btn btn-success mt-3"><i class="fas fa-save"></i> Salvar Solicitação</button>
-    <a href="{% url 'index' %}" class="btn btn-secondary mt-3">Cancelar</a>
+    <div class="card mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+            <i class="fas fa-calculator"></i> C. Classificação Contábil
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    {{ form.conta_contabil.label_tag }}
+                    {{ form.conta_contabil }}
+                    <small class="form-text text-muted">
+                        * O sistema definirá automaticamente se é <strong>OPEX</strong> ou <strong>CAPEX</strong> com base nesta escolha.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4 border-secondary">
+        <div class="card-header bg-secondary text-white">
+            <i class="fas fa-info-circle"></i> D. Detalhes e Fornecedor
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    {{ form.descricao_servico.label_tag }}
+                    {{ form.descricao_servico }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    {{ form.prioridade.label_tag }}
+                    {{ form.prioridade }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    {{ form.justificativa.label_tag }}
+                    {{ form.justificativa }}
+                </div>
+            </div>
+
+            <hr>
+            <h6 class="text-primary">Dados do Fornecedor e Valores</h6>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.fornecedor.label_tag }}
+                    {{ form.fornecedor }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.email_fornecedor.label_tag }}
+                    {{ form.email_fornecedor }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    {{ form.condicao_pagamento.label_tag }}
+                    {{ form.condicao_pagamento }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    {{ form.valor_estimado.label_tag }}
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        {{ form.valor_estimado }}
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    {{ form.anexo_orcamento.label_tag }}
+                    {{ form.anexo_orcamento }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-5">
+        <a href="{% url 'index' %}" class="btn btn-secondary me-md-2">Cancelar</a>
+        <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-save"></i> Salvar Solicitação</button>
+    </div>
 </form>
 {% endblock conteudo %}
 
 {% block javascript %}
 <script>
-    // Script simples para buscar o CNPJ quando a Unidade mudar
+    // AJAX: Dados da Unidade
     document.getElementById('id_unidade').addEventListener('change', function() {
         var unidadeId = this.value;
-        var url = "{% url 'ajax_get_cnpj' %}";  // URL definida no urls.py
+        var url = "{% url 'ajax_get_cnpj' %}";
 
-        fetch(url + '?unidade_id=' + unidadeId)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('id_cnpj_display').value = data.cnpj;
-            });
+        if(unidadeId){
+            fetch(url + '?unidade_id=' + unidadeId)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('id_cnpj_display').value = data.cnpj;
+                    document.getElementById('id_abreviacao_display').value = data.abreviacao;
+                    document.getElementById('id_razao_social_display').value = data.razao_social;
+                });
+        } else {
+            document.getElementById('id_cnpj_display').value = '';
+            document.getElementById('id_abreviacao_display').value = '';
+            document.getElementById('id_razao_social_display').value = '';
+        }
+    });
+
+    // AJAX: Dados do Solicitante
+    document.getElementById('id_solicitante').addEventListener('change', function() {
+        var solicitanteId = this.value;
+        var url = "{% url 'ajax_get_solicitante' %}";
+
+        if(solicitanteId){
+            fetch(url + '?solicitante_id=' + solicitanteId)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('id_telefone_display').value = data.telefone;
+                });
+        } else {
+            document.getElementById('id_telefone_display').value = '';
+        }
     });
 </script>
 {% endblock %}

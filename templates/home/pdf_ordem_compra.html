@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>Ordem de Compra #{{ oc.id }}</title>
     <style>
+        /* Estilos mantidos iguais, focando na alteração do conteúdo abaixo */
         @page {
             size: A4;
             margin: 1.5cm;
@@ -127,7 +128,7 @@
                 <tr>
                     <td width="50%">
                         <span class="label">Unidade / Hospital:</span><br>
-                        {{ oc.unidade.nome }}
+                        {{ oc.unidade.nome }} <br> <span style="font-size: 9px; color: #666;">Razão Social: {{ oc.unidade.razao_social }}</span>
                     </td>
                     <td width="50%">
                         <span class="label">CNPJ:</span><br>
@@ -137,7 +138,11 @@
                 <tr>
                     <td>
                         <span class="label">Solicitante Responsável:</span><br>
-                        {{ oc.solicitante.nome }} ({{ oc.solicitante.cargo|default:"Setor Técnico" }})
+                        {{ oc.solicitante.nome }}<br>
+                        <span style="font-size: 10px;">
+                            {{ oc.solicitante.cargo|default:"Setor Técnico" }} 
+                            {% if oc.solicitante.telefone %} | Tel: {{ oc.solicitante.telefone }} {% endif %}
+                        </span>
                     </td>
                     <td>
                         <span class="label">Centro de Custo:</span><br>

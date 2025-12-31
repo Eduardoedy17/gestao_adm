@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block titulo_conteudo %}Lançamento Fiscal{% endblock %}
+
+{% block conteudo %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> Selecione uma Ordem de Compra <strong>APROVADA</strong> para vincular a Nota Fiscal. 
+    Ao salvar, a ordem será automaticamente marcada como <strong>CONCLUÍDA</strong>.
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="card p-3 mb-3 bg-light border-0">
+        <div class="mb-3">
+            {{ form.ordem_compra.label_tag }}
+            {{ form.ordem_compra }}
+            <small class="form-text text-muted">Apenas ordens aprovadas e sem nota aparecem aqui.</small>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            {{ form.numero_nf.label_tag }}
+            {{ form.numero_nf }}
+        </div>
+        <div class="col-md-4 mb-3">
+            {{ form.numero_fluig.label_tag }}
+            {{ form.numero_fluig }}
+        </div>
+        <div class="col-md-4 mb-3">
+            {{ form.data_emissao.label_tag }}
+            {{ form.data_emissao }}
+        </div>
+    </div>
+
+    <div class="mb-4">
+        {{ form.arquivo_nf.label_tag }}
+        {{ form.arquivo_nf }}
+    </div>
+
+    <hr>
+
+    <button type="submit" class="btn btn-success btn-lg">
+        <i class="fas fa-check"></i> Salvar e Concluir
+    </button>
+    <a href="{% url 'lista_notasfiscais' %}" class="btn btn-secondary btn-lg">Cancelar</a>
+</form>
+{% endblock %}

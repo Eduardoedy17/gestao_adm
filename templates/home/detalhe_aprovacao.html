@@ -26,6 +26,21 @@
 
                 <div class="row mb-3">
                     <div class="col-md-12">
+                        <label class="text-muted small">Solicitante Responsável</label>
+                        <div class="fw-bold">
+                            {{ oc.solicitante.nome }} 
+                            <span class="text-muted fw-normal small">({{ oc.solicitante.cargo|default:"Cargo não informado" }})</span>
+                        </div>
+                        <div class="small text-secondary">
+                            <i class="fas fa-phone-alt me-1"></i> {{ oc.solicitante.telefone|default:"Sem telefone" }} 
+                            <span class="mx-2">|</span> 
+                            <i class="fas fa-envelope me-1"></i> {{ oc.solicitante.email }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
                         <label class="text-muted small">Descrição Detalhada</label>
                         <p class="border p-2 rounded bg-light">{{ oc.descricao_servico|linebreaksbr }}</p>
                     </div>

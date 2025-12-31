@@ -8,6 +8,7 @@ urlpatterns = [
     # AJAX
     path('ajax/get-cnpj/', views.get_cnpj_unidade, name='ajax_get_cnpj'),
     path('ajax/get-solicitante/', views.get_dados_solicitante, name='ajax_get_solicitante'),
+    path('ajax/get-oc-detalhes/', views.get_detalhes_ordem_compra, name='ajax_get_oc_detalhes'), # NOVO
     
     # Aprovações
     path('pendencias/', views.ListaPendenciasView.as_view(), name='lista_pendencias'),

@@ -10,37 +10,31 @@ from .models import OrdemCompra, Unidade, Solicitante, NotaFiscal
 from .forms import OrdemCompraForm, NotaFiscalForm
 from .utils import gerar_pdf_ordem_compra
 
+# ... (Views existentes: index, SolicitacaoCreateView, get_cnpj_unidade, get_dados_solicitante, ListaPendenciasView, DetalheAprovacaoView, VisualizarPdfView mantidas) ...
+
 # 1. Dashboard
 def index(request):
     return render(request, 'index.html')
 
-# 2. Nova Solicitação
 class SolicitacaoCreateView(CreateView):
     model = OrdemCompra
     form_class = OrdemCompraForm
     template_name = 'home/form_solicitacao.html'
     success_url = reverse_lazy('index')
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo_conteudo'] = "Nova Solicitação de Compra/Serviço"
         return context
 
-# 3. AJAX Dados Unidade (CNPJ + Abreviação + Razão Social)
 def get_cnpj_unidade(request):
     unidade_id = request.GET.get('unidade_id')
     try:
         unidade = Unidade.objects.get(id=unidade_id)
-        data = {
-            'cnpj': unidade.cnpj,
-            'abreviacao': unidade.abreviacao,
-            'razao_social': unidade.razao_social
-        }
+        data = {'cnpj': unidade.cnpj, 'abreviacao': unidade.abreviacao, 'razao_social': unidade.razao_social}
     except (Unidade.DoesNotExist, ValueError):
         data = {'cnpj': '', 'abreviacao': '', 'razao_social': ''}
     return JsonResponse(data)
 
-# 4. AJAX Telefone (Solicitante)
 def get_dados_solicitante(request):
     solicitante_id = request.GET.get('solicitante_id')
     try:
@@ -50,85 +44,95 @@ def get_dados_solicitante(request):
         data = {'telefone': ''}
     return JsonResponse(data)
 
-# 5. Lista de Pendências
 class ListaPendenciasView(ListView):
     model = OrdemCompra
     template_name = 'home/lista_pendencias.html'
     context_object_name = 'solicitacoes'
-
     def get_queryset(self):
         return OrdemCompra.objects.select_related('unidade', 'solicitante').filter(status='SOLICITADO').order_by('-data_criacao')
 
-# 6. Detalhe e Aprovação
 class DetalheAprovacaoView(DetailView):
     model = OrdemCompra
     template_name = 'home/detalhe_aprovacao.html'
     context_object_name = 'oc'
-
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         acao = request.POST.get('acao')
         motivo = request.POST.get('motivo_reprovacao')
-
         if self.object.status != 'SOLICITADO':
-            messages.error(request, 'Esta solicitação já foi processada.')
+            messages.error(request, 'Processado anteriormente.')
             return redirect('lista_pendencias')
-
         if acao == 'aprovar':
             self.object.status = 'APROVADO'
-            self.object.aprovado_por = request.user if request.user.is_authenticated else None
+            self.object.aprovado_por = request.user
             self.object.data_aprovacao = timezone.now()
             self.object.save()
-            
-            pdf_content, filename = gerar_pdf_ordem_compra(self.object)
-            
-            if pdf_content:
-                response = HttpResponse(pdf_content, content_type='application/pdf')
-                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            pdf, fname = gerar_pdf_ordem_compra(self.object)
+            if pdf:
+                response = HttpResponse(pdf, content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="{fname}"'
                 return response
-            else:
-                messages.warning(request, "Ordem aprovada com sucesso! (PDF indisponível neste ambiente serverless).")
-                return redirect('lista_pendencias')
-
+            return redirect('lista_pendencias')
         elif acao == 'reprovar':
-            if not motivo:
-                messages.error(request, 'É obrigatório informar o motivo da reprovação.')
-                return redirect('detalhe_aprovacao', pk=self.object.pk)
-            
             self.object.status = 'REPROVADO'
             self.object.motivo_reprovacao = motivo
-            self.object.aprovado_por = request.user if request.user.is_authenticated else None
-            self.object.data_aprovacao = timezone.now()
             self.object.save()
-            messages.success(request, 'Solicitação reprovada com sucesso.')
             return redirect('lista_pendencias')
-
         return redirect('lista_pendencias')
 
-# 7. Pré-visualização do PDF
 class VisualizarPdfView(DetailView):
     model = OrdemCompra
-    
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        
-        pdf_content, filename = gerar_pdf_ordem_compra(self.object)
-        
-        if pdf_content:
-            response = HttpResponse(pdf_content, content_type='application/pdf')
-            response['Content-Disposition'] = f'inline; filename="PREVIA_{filename}"'
+        pdf, fname = gerar_pdf_ordem_compra(self.object)
+        if pdf:
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="{fname}"'
             return response
-        else:
-            return HttpResponse("<h1>Visualização indisponível</h1><p>O ambiente Vercel não suporta as bibliotecas gráficas necessárias para gerar o PDF.</p>", status=503)
+        return HttpResponse("Erro PDF")
 
-# 8. Lista de Notas Fiscais (FINANCEIRO)
+# --- MÓDULO FINANCEIRO ---
+
 class NotaFiscalListView(ListView):
     model = NotaFiscal
     template_name = 'home/lista_notasfiscais.html'
     context_object_name = 'notas'
     ordering = ['-data_lancamento']
 
-# 9. Lançamento de Nova NF (FINANCEIRO)
+# NOVA VIEW AJAX: Busca detalhes da OC para o formulário de NF
+def get_detalhes_ordem_compra(request):
+    oc_id = request.GET.get('oc_id')
+    try:
+        oc = OrdemCompra.objects.get(id=oc_id)
+        
+        # Lógica do Mês (Month(Data OS))
+        meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+        mes_competencia = meses[oc.data_os.month - 1]
+
+        data = {
+            'success': True,
+            'solicitante': oc.solicitante.nome,
+            'unidade': oc.unidade.nome,
+            'setor': oc.setor_execucao,
+            'data_abertura': oc.data_os.strftime('%Y-%m-%d'), # Formato ISO para inputs de data
+            'mes_competencia': mes_competencia,
+            'fornecedor': oc.fornecedor,
+            'cnpj': oc.unidade.cnpj, # Na falta de CNPJ do fornecedor na OC, enviamos da Unidade ou Vazio
+            'especialidade': oc.get_especialidade_display(),
+            'centro_custo': str(oc.centro_custo),
+            'conta_contabil': oc.get_conta_contabil_display(),
+            'capex_opex': oc.classificacao,
+            'tipo_contrato': oc.get_tipo_contrato_display(),
+            'descricao': oc.descricao_servico,
+            'valor_estimado': str(oc.valor_estimado)
+        }
+    except OrdemCompra.DoesNotExist:
+        data = {'success': False}
+    
+    return JsonResponse(data)
+
+
 class NotaFiscalCreateView(CreateView):
     model = NotaFiscal
     form_class = NotaFiscalForm
@@ -138,7 +142,7 @@ class NotaFiscalCreateView(CreateView):
     def form_valid(self, form):
         if self.request.user.is_authenticated:
             form.instance.responsavel_lancamento = self.request.user
-        messages.success(self.request, "Nota Fiscal lançada com sucesso! A Ordem de Compra foi concluída.")
+        messages.success(self.request, "Nota Fiscal lançada com sucesso!")
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):

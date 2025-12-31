@@ -3,12 +3,9 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 import os
 
-# --- Entidades de Base (Cadastros Gerais) ---
+# ... (Unidade, CentroCusto, Solicitante mantidos iguais) ...
 
 class Unidade(models.Model):
-    """
-    Representa as unidades do Grupo Med Imagem e seus CNPJs.
-    """
     abreviacao = models.CharField(max_length=20, verbose_name="Sigla / Abreviação", help_text="Ex: HMI, PMA")
     nome = models.CharField(max_length=100, verbose_name="Nome da Unidade", help_text="Ex: Hospital Med Imagem")
     razao_social = models.CharField(max_length=150, verbose_name="Razão Social")
@@ -42,18 +39,11 @@ class Solicitante(models.Model):
 # --- Entidade Principal (Solicitação) ---
 
 class OrdemCompra(models.Model):
-    """
-    O coração do sistema. Gerencia o fluxo da solicitação.
-    Agora expandido para incluir dados de OS e Classificações detalhadas.
-    """
-    
-    # --- LISTAS DE OPÇÕES (CHOICES) ---
-    
+    # Choices existentes...
     TIPO_CLASSIFICACAO = [
         ('CAPEX', 'CAPEX (Investimento/Obras/Bens)'),
         ('OPEX', 'OPEX (Custeio/Manutenção/Materiais)'),
     ]
-
     STATUS_PEDIDO = [
         ('RASCUNHO', 'Rascunho'),
         ('SOLICITADO', 'Aguardando Aprovação'),
@@ -61,7 +51,6 @@ class OrdemCompra(models.Model):
         ('REPROVADO', 'Reprovado'),
         ('CONCLUIDO', 'Concluído (NF Lançada)'),
     ]
-
     OBJETIVO_COMPRA_CHOICES = [
         ('IMOBILIZADO', 'Aquisição de Bens Imobilizados'),
         ('MATERIAL', 'Compra de Material (Direto/Indireto)'),
@@ -71,7 +60,6 @@ class OrdemCompra(models.Model):
         ('MANUT_PREVENTIVA', 'Manutenção Preventiva'),
         ('MANUT_CORRETIVA', 'Manutenção Corretiva'),
     ]
-
     ESPECIALIDADE_CHOICES = [
         ('ELETRICA', 'Elétrica'),
         ('HIDRAULICA', 'Hidráulica'),
@@ -82,9 +70,7 @@ class OrdemCompra(models.Model):
         ('GASES', 'Gases Medicinais / Rede de Gases'),
         ('UTILITIES', 'Utilities (Energia/Água/Esgoto)'),
     ]
-
     CONTA_CONTABIL_CHOICES = [
-        # OPEX
         ('AGUA_ESGOTO', 'Água e Esgoto (OPEX)'),
         ('ENERGIA', 'Energia Elétrica (OPEX)'),
         ('GASES_MED', 'Gases Medicinais (OPEX)'),
@@ -92,50 +78,49 @@ class OrdemCompra(models.Model):
         ('MANUT_PREDIAL', 'Manutenção Predial (OPEX)'),
         ('MANUT_EQUIP', 'Manutenção de Equipamentos (OPEX)'),
         ('MANUT_MOVEIS', 'Manutenção de Móveis e Utensílios (OPEX)'),
-        # CAPEX / OUTROS
         ('INVESTIMENTO', 'Investimento / CAPEX (Outros)'),
     ]
-
     PRIORIDADE_CHOICES = [
         ('BAIXA', 'Baixa'),
         ('MEDIA', 'Média'),
         ('ALTA', 'Alta'),
         ('URGENTE', 'Urgente'),
     ]
+    # NOVO CHOICE
+    TIPO_CONTRATO_CHOICES = [
+        ('FIXO', 'Fixo / Recorrente'),
+        ('SPOT', 'Spot / Pontual'),
+    ]
 
-    # --- A. DADOS DE IDENTIFICAÇÃO (CABEÇALHO) ---
-    numero_os = models.CharField(max_length=50, verbose_name="Número da OS", help_text="ID único da Ordem de Serviço")
+    # Campos
+    numero_os = models.CharField(max_length=50, verbose_name="Número da OS")
     data_os = models.DateField(verbose_name="Data da OS")
-    solicitante = models.ForeignKey(Solicitante, on_delete=models.PROTECT, related_name='ordens', verbose_name="Solicitante Responsável")
-    setor_execucao = models.CharField(max_length=100, verbose_name="Setor de Execução", help_text="Local onde o serviço/material será aplicado")
+    solicitante = models.ForeignKey(Solicitante, on_delete=models.PROTECT, related_name='ordens')
+    setor_execucao = models.CharField(max_length=100, verbose_name="Setor de Execução")
     unidade = models.ForeignKey(Unidade, on_delete=models.PROTECT)
     centro_custo = models.ForeignKey(CentroCusto, on_delete=models.PROTECT)
 
-    # --- B. CLASSIFICAÇÃO DO PEDIDO ---
-    objetivo_compra = models.CharField(max_length=30, choices=OBJETIVO_COMPRA_CHOICES, verbose_name="Objetivo da Compra")
-    especialidade = models.CharField(max_length=30, choices=ESPECIALIDADE_CHOICES, verbose_name="Especialidade")
-
-    # --- C. CLASSIFICAÇÃO CONTÁBIL ---
-    conta_contabil = models.CharField(max_length=30, choices=CONTA_CONTABIL_CHOICES, verbose_name="Conta Contábil")
-    classificacao = models.CharField(max_length=10, choices=TIPO_CLASSIFICACAO, verbose_name="Classificação Geral (CAPEX/OPEX)")
-
-    # --- D. DETALHES E FORNECEDOR ---
-    descricao_servico = models.TextField(verbose_name="Descrição do Material/Serviço")
-    justificativa = models.TextField(verbose_name="Justificativa da Compra")
-    prioridade = models.CharField(max_length=10, choices=PRIORIDADE_CHOICES, default='MEDIA', verbose_name="Grau de Prioridade")
+    objetivo_compra = models.CharField(max_length=30, choices=OBJETIVO_COMPRA_CHOICES)
+    especialidade = models.CharField(max_length=30, choices=ESPECIALIDADE_CHOICES)
+    conta_contabil = models.CharField(max_length=30, choices=CONTA_CONTABIL_CHOICES)
+    classificacao = models.CharField(max_length=10, choices=TIPO_CLASSIFICACAO)
     
-    # Dados Financeiros/Fornecedor
-    fornecedor = models.CharField(max_length=150, verbose_name="Nome do Fornecedor")
-    email_fornecedor = models.EmailField(verbose_name="E-mail do Fornecedor", blank=True, null=True)
-    condicao_pagamento = models.CharField(max_length=100, verbose_name="Condições de Pagamento", help_text="Ex: Boleto 30 dias, À vista, Pix")
-    valor_estimado = models.DecimalField(max_digits=12, decimal_places=2)
-    anexo_orcamento = models.FileField(upload_to='orcamentos/%Y/%m/', verbose_name="Orçamento (PDF)")
+    # NOVO CAMPO DE CONTRATO
+    tipo_contrato = models.CharField(max_length=10, choices=TIPO_CONTRATO_CHOICES, default='SPOT', verbose_name="Tipo de Contrato")
 
-    # --- CONTROLE ---
+    descricao_servico = models.TextField()
+    justificativa = models.TextField()
+    prioridade = models.CharField(max_length=10, choices=PRIORIDADE_CHOICES, default='MEDIA')
+    
+    fornecedor = models.CharField(max_length=150)
+    email_fornecedor = models.EmailField(blank=True, null=True)
+    condicao_pagamento = models.CharField(max_length=100)
+    valor_estimado = models.DecimalField(max_digits=12, decimal_places=2)
+    anexo_orcamento = models.FileField(upload_to='orcamentos/%Y/%m/')
+
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=20, choices=STATUS_PEDIDO, default='RASCUNHO')
-    
     data_aprovacao = models.DateTimeField(null=True, blank=True)
     aprovado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='aprovacoes')
     motivo_reprovacao = models.TextField(blank=True, null=True)
@@ -144,31 +129,42 @@ class OrdemCompra(models.Model):
         return f"OS {self.numero_os} - {self.fornecedor}"
 
     def save(self, *args, **kwargs):
-        # Regra de Negócio: Validação Automática de CAPEX/OPEX baseada na Conta Contábil
-        contas_opex = [
-            'AGUA_ESGOTO', 'ENERGIA', 'GASES_MED', 'ALUGUEL_EQUIP',
-            'MANUT_PREDIAL', 'MANUT_EQUIP', 'MANUT_MOVEIS'
-        ]
-        
+        contas_opex = ['AGUA_ESGOTO', 'ENERGIA', 'GASES_MED', 'ALUGUEL_EQUIP', 'MANUT_PREDIAL', 'MANUT_EQUIP', 'MANUT_MOVEIS']
         if self.conta_contabil in contas_opex:
             self.classificacao = 'OPEX'
         else:
             self.classificacao = 'CAPEX'
-            
         super().save(*args, **kwargs)
 
 # --- Módulo Financeiro ---
+
 class NotaFiscal(models.Model):
-    ordem_compra = models.OneToOneField(OrdemCompra, on_delete=models.CASCADE, related_name='nota_fiscal')
+    TIPO_LANCAMENTO_CHOICES = [
+        ('FLUIG', 'Com Pedido Fluig'),
+        ('REGULARIZACAO', 'Regularização'),
+        ('MEDICAO', 'Medição de Contrato'),
+        ('DIVERSOS', 'Pagamentos Diversos'),
+    ]
+
+    ordem_compra = models.OneToOneField(OrdemCompra, on_delete=models.CASCADE, related_name='nota_fiscal', verbose_name="Ordem de Compra / Fluig")
+    
+    # Grupo B: Dados da NF
     numero_nf = models.CharField(max_length=50, verbose_name="Número da NF")
-    numero_fluig = models.CharField(max_length=50, verbose_name="Número Fluig", help_text="ID do processo no Fluig")
-    data_emissao = models.DateField()
+    numero_fluig = models.CharField(max_length=50, verbose_name="Número Fluig (Legado)", blank=True, null=True) # Tornado opcional pois o vínculo é pela OC
+    data_emissao = models.DateField(verbose_name="Data de Emissão")
+    data_vencimento = models.DateField(verbose_name="Data de Vencimento", null=True, blank=True) # Novo
+    valor_final = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Valor Final da Nota", null=True) # Novo (editável)
+    
+    # Grupo C: Lógica Condicional
+    tipo_lancamento = models.CharField(max_length=20, choices=TIPO_LANCAMENTO_CHOICES, default='FLUIG', verbose_name="Tipo de Lançamento")
+    plaqueta = models.CharField(max_length=50, blank=True, null=True, verbose_name="Plaqueta (Ativo Imobilizado)", help_text="Obrigatório se for CAPEX")
+
     arquivo_nf = models.FileField(upload_to='notas_fiscais/%Y/%m/')
     data_lancamento = models.DateTimeField(auto_now_add=True)
     responsavel_lancamento = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return f"NF {self.numero_nf} ref. OC #{self.ordem_compra.pk}"
+        return f"NF {self.numero_nf}"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

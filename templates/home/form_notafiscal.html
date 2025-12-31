@@ -3,47 +3,200 @@
 {% block titulo_conteudo %}Lançamento Fiscal{% endblock %}
 
 {% block conteudo %}
-<div class="alert alert-info">
-    <i class="fas fa-info-circle"></i> Selecione uma Ordem de Compra <strong>APROVADA</strong> para vincular a Nota Fiscal. 
-    Ao salvar, a ordem será automaticamente marcada como <strong>CONCLUÍDA</strong>.
-</div>
-
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    
-    <div class="card p-3 mb-3 bg-light border-0">
-        <div class="mb-3">
-            {{ form.ordem_compra.label_tag }}
+
+    <div class="card mb-4 border-dark">
+        <div class="card-header bg-dark text-white">
+            <i class="fas fa-search"></i> Seleção da Ordem de Compra
+        </div>
+        <div class="card-body">
+            <label class="form-label fw-bold">Número da Ordem de Compra / Fluig</label>
             {{ form.ordem_compra }}
-            <small class="form-text text-muted">Apenas ordens aprovadas e sem nota aparecem aqui.</small>
+            <small class="text-muted">Selecione para preencher automaticamente os dados do Grupo A.</small>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-4 mb-3">
-            {{ form.numero_nf.label_tag }}
-            {{ form.numero_nf }}
+    <div class="card mb-4 border-secondary bg-light">
+        <div class="card-header bg-secondary text-white">
+            <i class="fas fa-file-import"></i> Grupo A: Dados Herdados (Fluig/OS)
         </div>
-        <div class="col-md-4 mb-3">
-            {{ form.numero_fluig.label_tag }}
-            {{ form.numero_fluig }}
-        </div>
-        <div class="col-md-4 mb-3">
-            {{ form.data_emissao.label_tag }}
-            {{ form.data_emissao }}
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-2">{{ form.os_solicitante.label_tag }} {{ form.os_solicitante }}</div>
+                <div class="col-md-3 mb-2">{{ form.os_unidade.label_tag }} {{ form.os_unidade }}</div>
+                <div class="col-md-3 mb-2">{{ form.os_setor.label_tag }} {{ form.os_setor }}</div>
+                <div class="col-md-3 mb-2">{{ form.os_centro_custo.label_tag }} {{ form.os_centro_custo }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 mb-2">{{ form.os_data_abertura.label_tag }} {{ form.os_data_abertura }}</div>
+                <div class="col-md-3 mb-2">{{ form.os_mes_competencia.label_tag }} {{ form.os_mes_competencia }}</div>
+                <div class="col-md-6 mb-2">{{ form.os_especialidade.label_tag }} {{ form.os_especialidade }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-2">{{ form.os_fornecedor.label_tag }} {{ form.os_fornecedor }}</div>
+                <div class="col-md-4 mb-2">{{ form.os_conta_contabil.label_tag }} {{ form.os_conta_contabil }}</div>
+                <div class="col-md-2 mb-2">{{ form.os_capex_opex.label_tag }} {{ form.os_capex_opex }}</div>
+                <div class="col-md-2 mb-2">{{ form.os_tipo_contrato.label_tag }} {{ form.os_tipo_contrato }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 mb-2">{{ form.os_descricao.label_tag }} {{ form.os_descricao }}</div>
+            </div>
         </div>
     </div>
 
-    <div class="mb-4">
-        {{ form.arquivo_nf.label_tag }}
-        {{ form.arquivo_nf }}
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-pen"></i> Grupo B: Dados da Nota Fiscal
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    {{ form.numero_nf.label_tag }}
+                    {{ form.numero_nf }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    {{ form.data_emissao.label_tag }}
+                    {{ form.data_emissao }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    {{ form.data_vencimento.label_tag }}
+                    {{ form.data_vencimento }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    {{ form.valor_final.label_tag }}
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        {{ form.valor_final }}
+                    </div>
+                </div>
+                <div class="col-md-8 mb-3">
+                    {{ form.arquivo_nf.label_tag }}
+                    {{ form.arquivo_nf }}
+                </div>
+            </div>
+        </div>
     </div>
 
-    <hr>
+    <div class="card mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+            <i class="fas fa-traffic-light"></i> Grupo C: Classificação e Ativos
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.tipo_lancamento.label_tag }}
+                    {{ form.tipo_lancamento }}
+                </div>
+                <div class="col-md-6 mb-3" id="div-plaqueta" style="display: none;">
+                    {{ form.plaqueta.label_tag }}
+                    {{ form.plaqueta }}
+                    <small class="text-danger fw-bold">* Obrigatório para CAPEX</small>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <button type="submit" class="btn btn-success btn-lg">
-        <i class="fas fa-check"></i> Salvar e Concluir
-    </button>
-    <a href="{% url 'lista_notasfiscais' %}" class="btn btn-secondary btn-lg">Cancelar</a>
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-5">
+        <a href="{% url 'lista_notasfiscais' %}" class="btn btn-secondary me-md-2">Cancelar</a>
+        <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-save"></i> Salvar e Concluir</button>
+    </div>
 </form>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const selectOC = document.getElementById('id_ordem_compra');
+        const tipoLancamento = document.getElementById('id_tipo_lancamento');
+        const divPlaqueta = document.getElementById('div-plaqueta');
+        const campoPlaqueta = document.getElementById('id_plaqueta');
+
+        // IDs dos campos virtuais (Grupo A)
+        const fields = {
+            solicitante: document.getElementById('id_os_solicitante'),
+            unidade: document.getElementById('id_os_unidade'),
+            setor: document.getElementById('id_os_setor'),
+            data_abertura: document.getElementById('id_os_data_abertura'),
+            mes: document.getElementById('id_os_mes_competencia'),
+            fornecedor: document.getElementById('id_os_fornecedor'),
+            especialidade: document.getElementById('id_os_especialidade'),
+            centro_custo: document.getElementById('id_os_centro_custo'),
+            conta: document.getElementById('id_os_conta_contabil'),
+            capex: document.getElementById('id_os_capex_opex'),
+            contrato: document.getElementById('id_os_tipo_contrato'),
+            descricao: document.getElementById('id_os_descricao'),
+        };
+
+        const campoValor = document.getElementById('id_valor_final');
+
+        // Função para travar/destravar campos
+        function toggleLock(field, value) {
+            field.value = value || ''; // Preenche ou limpa
+            if (value && value.trim() !== '') {
+                field.setAttribute('readonly', true);
+                field.classList.add('bg-light');
+            } else {
+                field.removeAttribute('readonly');
+                field.classList.remove('bg-light');
+                field.classList.add('bg-white'); // Destaca que é editável
+            }
+        }
+
+        // GATILHO (OnChange)
+        selectOC.addEventListener('change', function() {
+            const ocId = this.value;
+            const url = "{% url 'ajax_get_oc_detalhes' %}";
+
+            if (ocId) {
+                fetch(`${url}?oc_id=${ocId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // 1. Preencher e Bloquear (Se tiver dado)
+                            toggleLock(fields.solicitante, data.solicitante);
+                            toggleLock(fields.unidade, data.unidade);
+                            toggleLock(fields.setor, data.setor);
+                            toggleLock(fields.data_abertura, data.data_abertura);
+                            toggleLock(fields.mes, data.mes_competencia);
+                            toggleLock(fields.fornecedor, data.fornecedor);
+                            toggleLock(fields.especialidade, data.especialidade);
+                            toggleLock(fields.centro_custo, data.centro_custo);
+                            toggleLock(fields.conta, data.conta_contabil);
+                            toggleLock(fields.capex, data.capex_opex);
+                            toggleLock(fields.contrato, data.tipo_contrato);
+                            toggleLock(fields.descricao, data.descricao);
+                            
+                            // Sugerir valor, mas deixar editável
+                            campoValor.value = data.valor_estimado;
+
+                            // 2. Lógica Condicional (Grupo C)
+                            // Define "Com Pedido Fluig"
+                            tipoLancamento.value = 'FLUIG'; 
+
+                            // Verifica CAPEX -> Plaqueta
+                            if (data.capex_opex === 'CAPEX') {
+                                divPlaqueta.style.display = 'block';
+                                campoPlaqueta.setAttribute('required', 'required');
+                            } else {
+                                divPlaqueta.style.display = 'none';
+                                campoPlaqueta.removeAttribute('required');
+                                campoPlaqueta.value = '';
+                            }
+
+                        } else {
+                            alert("Erro ao buscar dados da Ordem de Compra.");
+                        }
+                    })
+                    .catch(error => console.error('Erro:', error));
+            } else {
+                // Limpar tudo se desmarcar
+                Object.values(fields).forEach(f => toggleLock(f, ''));
+                divPlaqueta.style.display = 'none';
+            }
+        });
+    });
+</script>
 {% endblock %}
